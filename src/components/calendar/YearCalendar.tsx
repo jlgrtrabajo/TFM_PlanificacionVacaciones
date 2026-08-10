@@ -1,59 +1,75 @@
 import type { CalendarDay } from '../../models/CalendarModels';
 import type { VacationPlanningLine } from '../../models/VacationModels';
 import { parseDate } from '../../utils/dateUtils';
+import { DEMO_YEAR } from '../../mock/constants';
 
 interface YearCalendarProps {
   calendar: CalendarDay[];
   selectedLines: VacationPlanningLine[];
 }
 
+const WEEKDAY_LABELS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+const MONTH_NAMES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
 function YearCalendar({ calendar, selectedLines }: YearCalendarProps) {
-  const selectedDates = new Set(selectedLines.flatMap((line) => {
-    const start = parseDate(line.startDate);
-    const end = parseDate(line.endDate);
-    const dates: string[] = [];
-    let current = new Date(start);
+  const selectedDates = new Set(
+    selectedLines.flatMap((line) => {
+      const start = parseDate(line.startDate);
+      const end = parseDate(line.endDate);
+      const dates: string[] = [];
+      let current = new Date(start);
 
-    while (current <= end) {
-      dates.push(current.toISOString().slice(0, 10));
-      current.setDate(current.getDate() + 1);
-    }
+      while (current <= end) {
+        dates.push(current.toISOString().slice(0, 10));
+        current.setDate(current.getDate() + 1);
+      }
 
-    return dates;
-  }));
+      return dates;
+    }),
+  );
 
-  const months = Array.from({ length: 12 }, (_, index) => index);
+  const months = Array.from({ length: 12 }, (_, index) => index + 1);
 
   return (
     <div className="card mb-4">
       <div className="card-body">
-        <h2 className="h5 mb-3">Calendario 2026</h2>
+        <h2 className="h5 mb-3">Calendario {DEMO_YEAR}</h2>
         <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3 gy-3">
-          {months.map((monthIndex) => {
-            const monthDays = calendar.filter((day) => day.month === monthIndex + 1);
+          {months.map((month) => {
+            const monthDays = calendar.filter((day) => day.month === month);
+            const firstDay = monthDays[0];
+            const offset = firstDay ? ((firstDay.weekday + 6) % 7) : 0;
+            const title = `${MONTH_NAMES[month - 1]} ${DEMO_YEAR}`;
+
             return (
-              <div key={monthIndex} className="col">
+              <div key={month} className="col">
                 <div className="border rounded p-2 h-100">
-                  <div className="mb-2 text-center fw-semibold">{monthDays[0]?.date.slice(0, 7) ?? ''}</div>
-                  <div className="d-flex flex-wrap gap-1">
+                  <div className="mb-2 text-center fw-semibold">{title}</div>
+                  <div className="d-grid" style={{ gridTemplateColumns: 'repeat(7, 1fr)', gap: '0.25rem' }}>
+                    {WEEKDAY_LABELS.map((label) => (
+                      <div key={label} className="text-center small fw-semibold">
+                        {label}
+                      </div>
+                    ))}
+                    {Array.from({ length: offset }).map((_, index) => (
+                      <div key={`empty-${index}`} />
+                    ))}
                     {monthDays.map((day) => {
                       const isSelected = selectedDates.has(day.date);
                       const classes = [
                         'text-center',
                         'rounded',
                         'p-1',
-                        'flex-fill',
-                        'min-w-0',
                         'small',
                         day.isWorkingDay ? 'bg-white' : 'bg-secondary bg-opacity-10 text-muted',
                       ];
 
-                      if (isSelected && day.isWorkingDay) {
-                        classes.push('bg-primary', 'text-white');
+                      if (isSelected) {
+                        classes.push(day.isWorkingDay ? 'bg-primary text-white' : 'bg-info text-white');
                       }
 
                       return (
-                        <div key={day.date} className={classes.join(' ')} style={{ width: '2rem' }}>
+                        <div key={day.date} className={classes.join(' ')}>
                           {day.day}
                         </div>
                       );

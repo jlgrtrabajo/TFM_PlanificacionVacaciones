@@ -1,4 +1,4 @@
-export type VacationPlanningStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+export type VacationPlanningStatus = 'DRAFT' | 'PENDING' | 'APPROVED' | 'REJECTED';
 
 export interface VacationPlanningLine {
   id: number;

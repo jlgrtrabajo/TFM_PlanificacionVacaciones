@@ -1,8 +1,9 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authenticate } from '../services/authService';
 import { useAuth } from '../context/AuthContext';
 import AuthLayout from '../layouts/AuthLayout';
+import { getDepartments, getProfiles, getUsers } from '../services/dataService';
 
 function LoginPage() {
   const [login, setLogin] = useState('');
@@ -10,6 +11,10 @@ function LoginPage() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
   const { setUser } = useAuth();
+
+  const users = useMemo(() => getUsers(), []);
+  const profiles = useMemo(() => getProfiles(), []);
+  const departments = useMemo(() => getDepartments(), []);
 
   const redirectToHome = (profileId: number) => {
     if (profileId === 2) {
@@ -73,10 +78,33 @@ function LoginPage() {
             </div>
             <div className="mt-3">
               <div className="card card-body bg-light">
-                <h2 className="h6">Usuarios de prueba</h2>
-                <p className="mb-1">empleado: juan / juan123</p>
-                <p className="mb-1">empleado: pedro / pedro123</p>
-                <p className="mb-1">admin: dani / dani123</p>
+                <h2 className="h6">Usuarios disponibles</h2>
+                <div className="table-responsive">
+                  <table className="table table-sm mb-0">
+                    <thead>
+                      <tr>
+                        <th>Login</th>
+                        <th>Contraseña</th>
+                        <th>Perfil</th>
+                        <th>Departamento</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {users.map((userItem) => {
+                        const profile = profiles.find((profileItem) => profileItem.id === userItem.profileId);
+                        const department = departments.find((departmentItem) => departmentItem.id === userItem.departmentId);
+                        return (
+                          <tr key={userItem.id}>
+                            <td>{userItem.login}</td>
+                            <td>{userItem.password}</td>
+                            <td>{profile?.description ?? 'N/A'}</td>
+                            <td>{department?.name ?? 'N/A'}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>

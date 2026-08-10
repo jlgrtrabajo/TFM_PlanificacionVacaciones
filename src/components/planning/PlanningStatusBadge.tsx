@@ -5,6 +5,7 @@ interface PlanningStatusBadgeProps {
 }
 
 const statusClasses: Record<VacationPlanningStatus, string> = {
+  DRAFT: 'bg-secondary',
   APPROVED: 'bg-success',
   PENDING: 'bg-warning text-dark',
   REJECTED: 'bg-danger',

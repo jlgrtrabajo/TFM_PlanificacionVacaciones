@@ -3,11 +3,14 @@ import { useAuth } from '../context/AuthContext';
 import DefaultLayout from '../layouts/DefaultLayout';
 import { getCalendar, getDepartments, getUsers } from '../services/dataService';
 import * as planningService from '../services/planningService';
-import type { VacationPlanning } from '../models/VacationModels';
+import type { VacationPlanning } from '../models/VacationPlanning';
 import type { CalendarDay } from '../models/CalendarModels';
 import { parseDate } from '../utils/dateUtils';
+import { DEMO_YEAR } from '../mock/constants';
 
 const QUARTERS = ['ALL', 'Q1', 'Q2', 'Q3', 'Q4'] as const;
+const DEFAULT_START_DATE = `${DEMO_YEAR}-01-01`;
+const DEFAULT_END_DATE = `${DEMO_YEAR}-01-01`;
 const STATUS_FILTERS = ['ALL', 'PENDING', 'APPROVED', 'REJECTED'] as const;
 const MONTH_NAMES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
@@ -63,13 +66,13 @@ function AdminDashboardPage() {
     return getUsers().find((employee) => employee.id === user.id)?.departmentId ?? null;
   }, [user]);
 
-  const [year, setYear] = useState<number>(years[0] ?? new Date().getFullYear());
+  const [year, setYear] = useState<number>(DEMO_YEAR);
   const [departmentId, setDepartmentId] = useState<number | 'ALL'>(approverDepartment ?? 'ALL');
   const [employeeId, setEmployeeId] = useState<number | 'ALL'>('ALL');
   const [statusFilter, setStatusFilter] = useState<StatusOption>('ALL');
-  const [quarter, setQuarter] = useState<QuarterOption>('Q3');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [quarter, setQuarter] = useState<QuarterOption>('ALL');
+  const [startDate, setStartDate] = useState(DEFAULT_START_DATE);
+  const [endDate, setEndDate] = useState(DEFAULT_END_DATE);
 
   const quarterDays = useMemo(() => {
     const { startMonth, endMonth } = quarterRanges[quarter];
@@ -239,13 +242,20 @@ function AdminDashboardPage() {
                 className="form-select"
                 value={departmentId}
                 onChange={(event) => setDepartmentId(event.target.value === 'ALL' ? 'ALL' : Number(event.target.value))}
+                disabled={approverDepartment !== null}
               >
-                <option value="ALL">Todos</option>
-                {departments.map((department) => (
-                  <option key={department.id} value={department.id}>
-                    {department.name}
-                  </option>
-                ))}
+                {approverDepartment ? (
+                  <option value={approverDepartment}>{departments.find((d) => d.id === approverDepartment)?.name ?? 'Departamento'}</option>
+                ) : (
+                  <>
+                    <option value="ALL">Todos</option>
+                    {departments.map((department) => (
+                      <option key={department.id} value={department.id}>
+                        {department.name}
+                      </option>
+                    ))}
+                  </>
+                )}
               </select>
             </div>
             <div className="col-md-3">
@@ -258,6 +268,7 @@ function AdminDashboardPage() {
                 <option value="ALL">Todos</option>
                 {allUsers
                   .filter((employee) => employee.profileId === 1)
+                  .filter((employee) => (approverDepartment ? employee.departmentId === approverDepartment : true))
                   .map((employee) => (
                     <option key={employee.id} value={employee.id}>
                       {employee.name}

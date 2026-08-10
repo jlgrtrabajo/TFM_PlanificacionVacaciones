@@ -24,11 +24,17 @@ export const countWorkingDays = (calendar: CalendarDay[], startDate: string, end
     return 0;
   }
 
-  return calendar.reduce((count, day) => {
-    const current = parseDate(day.date);
-    if (current >= start && current <= end && day.isWorkingDay) {
-      return count + 1;
+  let count = 0;
+  let current = new Date(start);
+
+  while (current <= end) {
+    const dateString = formatDate(current);
+    const calendarDay = getCalendarDay(calendar, dateString);
+    if (calendarDay?.isWorkingDay) {
+      count += 1;
     }
-    return count;
-  }, 0);
+    current.setDate(current.getDate() + 1);
+  }
+
+  return count;
 };

@@ -89,7 +89,7 @@ function AdminPlanningDetail({ planning, onApprove, onReject, rejectReason, onRe
             onConfirm={onApprove}
             label="Aprobar"
             confirmMessage="¿Confirmas que quieres aprobar esta planificación?"
-            variant="success"
+            variant="primary"
             disabled={!isPending}
           />
           <ConfirmButton
@@ -102,7 +102,7 @@ function AdminPlanningDetail({ planning, onApprove, onReject, rejectReason, onRe
         </div>
         {planning.status !== 'PENDING' && (
           <div className="alert alert-secondary mt-3 mb-0">
-            Esta planificación no se puede modificar porque está <strong>{planning.status.toLowerCase()}</strong>.
+            Esta planificación está cerrada y no se puede modificar en estado <strong>{planning.status.toLowerCase()}</strong>.
           </div>
         )}
       </div>

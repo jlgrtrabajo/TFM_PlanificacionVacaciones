@@ -27,6 +27,7 @@ function PlanningHistoryList({ history, activePlanningId }: PlanningHistoryListP
           <table className="table table-sm align-middle mb-0">
             <thead>
               <tr>
+                <th>ID</th>
                 <th>Creación</th>
                 <th>Estado</th>
                 <th>Días</th>
@@ -37,6 +38,7 @@ function PlanningHistoryList({ history, activePlanningId }: PlanningHistoryListP
             <tbody>
               {history.map((planning) => (
                 <tr key={planning.id} className={planning.id === activePlanningId ? 'table-primary' : ''}>
+                  <td>{planning.id}</td>
                   <td>{formatDate(new Date(planning.createdAt))}</td>
                   <td>
                     <PlanningStatusBadge status={planning.status} />

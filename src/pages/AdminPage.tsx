@@ -15,6 +15,7 @@ function AdminPage() {
   const [searchText, setSearchText] = useState('');
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [rejectReason, setRejectReason] = useState('');
+  const [message, setMessage] = useState('');
   const [plans, setPlans] = useState<VacationPlanning[]>(() => planningService.getAllPlannings());
 
   const departmentApprover = useMemo(() => {
@@ -44,17 +45,36 @@ function AdminPage() {
       status: 'APPROVED' as const,
       approverId: user?.id,
       approvalDate: new Date().toISOString(),
+      modifiedAt: new Date().toISOString(),
     };
 
     planningService.updatePlanning(updatedPlan);
     setPlans(planningService.getAllPlannings());
+    setMessage(`Planificación ID ${selectedPlan.id} aprobada correctamente.`);
+
     addNotification({
       id: Date.now(),
-      userId: selectedPlan.userId,
+      planningId: selectedPlan.id,
+      from: 'sistema@empresa.local',
+      to: [selectedPlan.userId ? getUsers().find((item) => item.id === selectedPlan.userId)?.email ?? '' : ''],
       subject: 'Planificación aprobada',
       body: `Tu planificación ${selectedPlan.id} ha sido aprobada.`,
-      date: new Date().toISOString(),
+      sent: true,
+      createdAt: new Date().toISOString(),
     });
+
+    if (user?.email) {
+      addNotification({
+        id: Date.now() + 1,
+        planningId: selectedPlan.id,
+        from: 'sistema@empresa.local',
+        to: [user.email],
+        subject: 'Planificación revisada',
+        body: `Has aprobado la planificación ${selectedPlan.id}.`,
+        sent: true,
+        createdAt: new Date().toISOString(),
+      });
+    }
   };
 
   const handleReject = (reason: string) => {
@@ -69,14 +89,32 @@ function AdminPage() {
 
     planningService.updatePlanning(updatedPlan);
     setPlans(planningService.getAllPlannings());
+    setRejectReason('');
+    setMessage(`Planificación ID ${selectedPlan.id} rechazada correctamente.`);
+
     addNotification({
       id: Date.now(),
-      userId: selectedPlan.userId,
+      planningId: selectedPlan.id,
+      from: 'sistema@empresa.local',
+      to: [selectedPlan.userId ? getUsers().find((item) => item.id === selectedPlan.userId)?.email ?? '' : ''],
       subject: 'Planificación rechazada',
       body: `Tu planificación ${selectedPlan.id} ha sido rechazada: ${reason}`,
-      date: new Date().toISOString(),
+      sent: true,
+      createdAt: new Date().toISOString(),
     });
-    setRejectReason('');
+
+    if (user?.email) {
+      addNotification({
+        id: Date.now() + 1,
+        planningId: selectedPlan.id,
+        from: 'sistema@empresa.local',
+        to: [user.email],
+        subject: 'Planificación revisada',
+        body: `Has rechazado la planificación ${selectedPlan.id}.`,
+        sent: true,
+        createdAt: new Date().toISOString(),
+      });
+    }
   };
 
   if (!user) {
@@ -95,6 +133,14 @@ function AdminPage() {
           <p>Departamento: {departmentApprover ? `#${departmentApprover.departmentId}` : 'Sin departamento asignado'}</p>
         </div>
       </div>
+
+      {message && (
+        <div className="row mb-3">
+          <div className="col-12">
+            <div className="alert alert-success">{message}</div>
+          </div>
+        </div>
+      )}
 
       <div className="row">
         <div className="col-lg-5">
