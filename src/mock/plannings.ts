@@ -2,6 +2,7 @@ import { VacationPlanning } from '../models/VacationModels';
 import { DEMO_YEAR } from './constants';
 
 export const plannings: VacationPlanning[] = [
+  /*
   {
     id: 1,
     userId: 1,
@@ -182,4 +183,5 @@ export const plannings: VacationPlanning[] = [
       { id: 36, planningId: 12, startDate: '2026-12-10', endDate: '2026-12-11', workingDays: 2 },
     ],
   },
+  */
 ];

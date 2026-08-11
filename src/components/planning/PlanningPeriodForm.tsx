@@ -126,8 +126,12 @@ function PlanningPeriodForm({ onSave, calendar, nextLineId, remainingDays, disab
             </div>
           </div>
           <div className="mt-3">
-            <p className="mb-1">Días laborables seleccionados: {workingDays}</p>
-            <p className="mb-1">Días restantes disponibles: {remainingDays}</p>
+            <p className="mb-1">
+  Días laborables seleccionados: <span className="fw-bold">{workingDays}</span>
+</p>
+<p className="mb-1">
+  Días restantes disponibles: <span className="fw-bold">{remainingDays}</span>
+</p>
             {error && <div className="alert alert-danger">{error}</div>}
             <button type="submit" className="btn btn-primary" disabled={disabled || remainingDays <= 0}>
               Añadir periodo

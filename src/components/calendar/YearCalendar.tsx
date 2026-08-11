@@ -56,16 +56,14 @@ function YearCalendar({ calendar, selectedLines }: YearCalendarProps) {
                     ))}
                     {monthDays.map((day) => {
                       const isSelected = selectedDates.has(day.date);
-                      const classes = [
-                        'text-center',
-                        'rounded',
-                        'p-1',
-                        'small',
-                        day.isWorkingDay ? 'bg-white' : 'bg-secondary bg-opacity-10 text-muted',
-                      ];
+                      const classes = ['text-center', 'rounded', 'p-1', 'small'];
 
                       if (isSelected) {
-                        classes.push(day.isWorkingDay ? 'bg-primary text-white' : 'bg-info text-white');
+                        classes.push('bg-danger', 'text-white', 'border', 'border-danger');
+                      } else if (day.isWorkingDay) {
+                        classes.push('bg-white');
+                      } else {
+                        classes.push('bg-secondary', 'bg-opacity-10', 'text-muted');
                       }
 
                       return (

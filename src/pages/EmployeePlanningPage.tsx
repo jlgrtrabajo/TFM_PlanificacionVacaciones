@@ -10,6 +10,7 @@ import PlanningStatusBadge from '../components/planning/PlanningStatusBadge';
 import { getApprovers, getCalendar, getDepartments, getProfiles, getUsers } from '../services/dataService';
 import * as planningService from '../services/planningService';
 import { getTotalWorkingDays } from '../utils/planningUtils';
+import { parseDate } from '../utils/dateUtils';
 import { DEMO_YEAR } from '../mock/constants';
 import type { VacationPlanning, VacationPlanningLine } from '../models/VacationModels';
 
@@ -81,6 +82,11 @@ function EmployeePlanningPage() {
     setLines((current) => current.filter((line) => line.id !== lineId));
   };
 
+  const isRangeOverlap = (startA: Date, endA: Date, startB: Date, endB: Date) => startA <= endB && startB <= endA;
+
+  const doesLineOverlap = (a: VacationPlanningLine, b: VacationPlanningLine) =>
+    isRangeOverlap(parseDate(a.startDate), parseDate(a.endDate), parseDate(b.startDate), parseDate(b.endDate));
+
   const handleSaveLine = (line: VacationPlanningLine) => {
     if (!activePlanning) {
       setMessage('Primero crea una planificación para poder añadir periodos.');
@@ -89,6 +95,11 @@ function EmployeePlanningPage() {
 
     if (!isEditable) {
       setMessage('No puedes añadir periodos a una planificación que ya está enviada o aprobada.');
+      return;
+    }
+
+    if (lines.some((existing) => doesLineOverlap(existing, line))) {
+      setMessage('No puedes añadir un periodo que se solape con un periodo ya seleccionado.');
       return;
     }
 
@@ -178,9 +189,11 @@ function EmployeePlanningPage() {
         <div className="col-12">
           <h1 className="h4">Portal del empleado</h1>
           <p>
-            Bienvenido, {user.name}. Perfil: {profileName}. Departamento: {departmentName}
-          </p>
-          <p>Planificación de vacaciones {DEMO_YEAR}</p>
+              Bienvenido, <span className="fw-bold">{user.name}</span>. Perfil: <span className="fw-bold">{profileName}</span>. Departamento: <span className="fw-bold">{departmentName}</span>
+            </p>
+            <p>
+              <span className="fw-bold">Planificación de vacaciones {DEMO_YEAR}</span>
+            </p>
         </div>
       </div>
       <div className="row">

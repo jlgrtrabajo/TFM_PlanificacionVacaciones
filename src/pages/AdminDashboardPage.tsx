@@ -3,15 +3,13 @@ import { useAuth } from '../context/AuthContext';
 import DefaultLayout from '../layouts/DefaultLayout';
 import { getCalendar, getDepartments, getUsers } from '../services/dataService';
 import * as planningService from '../services/planningService';
-import type { VacationPlanning } from '../models/VacationPlanning';
+import type { VacationPlanning } from '../models/VacationModels';
 import type { CalendarDay } from '../models/CalendarModels';
 import { parseDate } from '../utils/dateUtils';
 import { DEMO_YEAR } from '../mock/constants';
 
 const QUARTERS = ['ALL', 'Q1', 'Q2', 'Q3', 'Q4'] as const;
-const DEFAULT_START_DATE = `${DEMO_YEAR}-01-01`;
-const DEFAULT_END_DATE = `${DEMO_YEAR}-01-01`;
-const STATUS_FILTERS = ['ALL', 'PENDING', 'APPROVED', 'REJECTED'] as const;
+const STATUS_FILTERS = ['ALL', 'PENDING', 'APPROVED'] as const; //jgramiro elimino rejected
 const MONTH_NAMES = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
 type QuarterOption = typeof QUARTERS[number];
@@ -71,13 +69,13 @@ function AdminDashboardPage() {
   const [employeeId, setEmployeeId] = useState<number | 'ALL'>('ALL');
   const [statusFilter, setStatusFilter] = useState<StatusOption>('ALL');
   const [quarter, setQuarter] = useState<QuarterOption>('ALL');
-  const [startDate, setStartDate] = useState(DEFAULT_START_DATE);
-  const [endDate, setEndDate] = useState(DEFAULT_END_DATE);
 
   const quarterDays = useMemo(() => {
     const { startMonth, endMonth } = quarterRanges[quarter];
     const start = parseDate(`${year}-${String(startMonth).padStart(2, '0')}-01`);
-    const end = parseDate(`${year}-${String(endMonth).padStart(2, '0')}-${new Date(year, endMonth, 0).getDate()}`);
+    // Obtener el último día del mes usando endMonth - 1 para convertir de 1-indexed a 0-indexed
+    const lastDayOfMonth = new Date(year, endMonth, 0).getDate();
+    const end = parseDate(`${year}-${String(endMonth).padStart(2, '0')}-${lastDayOfMonth}`);
     return calendar.filter((day) => {
       const current = parseDate(day.date);
       return current >= start && current <= end;
@@ -85,10 +83,6 @@ function AdminDashboardPage() {
   }, [calendar, quarter, year]);
 
   const filteredPlannings = useMemo(() => {
-    const dateFilterActive = startDate && endDate;
-    const filterStart = dateFilterActive ? parseDate(startDate) : null;
-    const filterEnd = dateFilterActive ? parseDate(endDate) : null;
-
     return allPlans.filter((plan) => {
       if (plan.year !== year) {
         return false;
@@ -105,36 +99,58 @@ function AdminDashboardPage() {
         return false;
       }
 
-      if (statusFilter !== 'ALL' && plan.status !== statusFilter) {
+      // jgramiro: Cuando estado es ALL, mostrar solo PENDING y APPROVED (nunca REJECTED)
+      if (statusFilter === 'ALL') {
+        if (plan.status !== 'PENDING' && plan.status !== 'APPROVED') {
+          return false;
+        }
+      } else if (plan.status !== statusFilter) {
         return false;
-      }
-
-      if (dateFilterActive && filterStart && filterEnd) {
-        return plan.lines.some((line) =>
-          isRangeOverlap(parseDate(line.startDate), parseDate(line.endDate), filterStart, filterEnd),
-        );
       }
 
       return true;
     });
-  }, [allPlans, allUsers, departmentId, employeeId, statusFilter, year, startDate, endDate]);
+  }, [allPlans, allUsers, departmentId, employeeId, statusFilter, year]);
 
-  const employeesOnDashboard = useMemo(() => {
-    const employeeMap = new Map<number, string>();
-    filteredPlannings.forEach((plan) => {
-      if (!employeeMap.has(plan.userId)) {
-        employeeMap.set(plan.userId, plan.employeeName);
-      }
-    });
-    return Array.from(employeeMap.entries()).map(([id, name]) => ({ id, name }));
+  const latestPendingPlansByUser = useMemo(() => {
+    const latestMap = new Map<number, VacationPlanning>();
+
+    filteredPlannings
+      .filter((plan) => plan.status === 'PENDING')
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+      .forEach((plan) => {
+        if (!latestMap.has(plan.userId)) {
+          latestMap.set(plan.userId, plan);
+        }
+      });
+
+    return Array.from(latestMap.values());
   }, [filteredPlannings]);
+
+  const displayPlans = useMemo(
+    () => (statusFilter === 'PENDING' ? latestPendingPlansByUser : filteredPlannings),
+    [latestPendingPlansByUser, filteredPlannings, statusFilter],
+  );
+
+  const employeesOnDashboard = useMemo(
+    () => {
+      const employeeMap = new Map<number, string>();
+      displayPlans.forEach((plan) => {
+        if (!employeeMap.has(plan.userId)) {
+          employeeMap.set(plan.userId, plan.employeeName);
+        }
+      });
+      return Array.from(employeeMap.entries()).map(([id, name]) => ({ id, name }));
+    },
+    [displayPlans],
+  );
 
   const dayConflictCounts = useMemo(() => {
     const map = new Map<string, number>();
 
     quarterDays.forEach((day) => {
       const employeesWithDay = new Set<number>();
-      filteredPlannings.forEach((plan) => {
+      displayPlans.forEach((plan) => {
         if (plan.lines.some((line) => isLineActiveOnDay(line, day.date) && day.isWorkingDay)) {
           employeesWithDay.add(plan.userId);
         }
@@ -146,12 +162,13 @@ function AdminDashboardPage() {
     });
 
     return map;
-  }, [filteredPlannings, quarterDays]);
+  }, [displayPlans, quarterDays]);
 
   const planningCount = filteredPlannings.length;
   const pendingCount = filteredPlannings.filter((plan) => plan.status === 'PENDING').length;
   const approvedCount = filteredPlannings.filter((plan) => plan.status === 'APPROVED').length;
-  const rejectedCount = filteredPlannings.filter((plan) => plan.status === 'REJECTED').length;
+  //jgramiro 
+  //const rejectedCount = filteredPlannings.filter((plan) => plan.status === 'REJECTED').length;
   const conflictDayCount = dayConflictCounts.size;
   const conflictSummary = Array.from(dayConflictCounts.entries()).slice(0, 4);
 
@@ -205,7 +222,9 @@ function AdminDashboardPage() {
             </div>
           </div>
         </div>
-        <div className="col-sm-6 col-lg-2">
+        {/* jgramiro */}
+        {/*  
+        <div className="col-sm-6 col-lg-2"> 
           <div className="card text-center">
             <div className="card-body">
               <h6 className="text-muted">Rechazadas</h6>
@@ -213,6 +232,7 @@ function AdminDashboardPage() {
             </div>
           </div>
         </div>
+        */}
         <div className="col-sm-6 col-lg-2">
           <div className="card text-center">
             <div className="card-body">
@@ -291,24 +311,6 @@ function AdminDashboardPage() {
               </select>
             </div>
             <div className="col-md-3">
-              <label className="form-label">Fecha inicio</label>
-              <input
-                className="form-control"
-                type="date"
-                value={startDate}
-                onChange={(event) => setStartDate(event.target.value)}
-              />
-            </div>
-            <div className="col-md-3">
-              <label className="form-label">Fecha fin</label>
-              <input
-                className="form-control"
-                type="date"
-                value={endDate}
-                onChange={(event) => setEndDate(event.target.value)}
-              />
-            </div>
-            <div className="col-md-3">
               <label className="form-label">Vista</label>
               <select className="form-select" value={quarter} onChange={(event) => setQuarter(event.target.value as QuarterOption)}>
                 {QUARTERS.map((option) => (
@@ -370,7 +372,7 @@ function AdminDashboardPage() {
                   {employee.name}
                 </th>
                 {quarterDays.map((day) => {
-                  const active = filteredPlannings.some(
+                  const active = displayPlans.some(
                     (plan) =>
                       plan.userId === employee.id &&
                       plan.lines.some((line) => isLineActiveOnDay(line, day.date) && day.isWorkingDay),
