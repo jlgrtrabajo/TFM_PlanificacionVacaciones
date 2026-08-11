@@ -1,9 +1,16 @@
+﻿/**
+ * @file PlanningHistoryList.tsx
+ * @description Muestra la tabla del historial de solicitudes de planificación creadas previamente por el empleado.
+ */
+
 import type { VacationPlanning } from '../../models/VacationModels';
 import PlanningStatusBadge from './PlanningStatusBadge';
 import { formatDate } from '../../utils/dateUtils';
 
 interface PlanningHistoryListProps {
+  /** Historial de planificaciones del empleado */
   history: VacationPlanning[];
+  /** ID opcional de la planificación activa para destacarla visualmente en la tabla */
   activePlanningId?: number;
 }
 

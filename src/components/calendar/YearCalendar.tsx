@@ -1,6 +1,6 @@
-import type { CalendarDay } from '../../models/CalendarModels';
+﻿import type { CalendarDay } from '../../models/CalendarModels';
 import type { VacationPlanningLine } from '../../models/VacationModels';
-import { parseDate } from '../../utils/dateUtils';
+import { formatDate, parseDate } from '../../utils/dateUtils';
 import { DEMO_YEAR } from '../../mock/constants';
 
 interface YearCalendarProps {
@@ -18,12 +18,10 @@ function YearCalendar({ calendar, selectedLines }: YearCalendarProps) {
       const end = parseDate(line.endDate);
       const dates: string[] = [];
       let current = new Date(start);
-
       while (current <= end) {
-        dates.push(current.toISOString().slice(0, 10));
+        dates.push(formatDate(current));
         current.setDate(current.getDate() + 1);
       }
-
       return dates;
     }),
   );

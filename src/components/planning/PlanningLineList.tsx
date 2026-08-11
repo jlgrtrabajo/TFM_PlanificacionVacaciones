@@ -1,4 +1,4 @@
-import type { VacationPlanningLine } from '../../models/VacationModels';
+﻿import type { VacationPlanningLine } from '../../models/VacationModels';
 
 interface PlanningLineListProps {
   lines: VacationPlanningLine[];
@@ -7,6 +7,8 @@ interface PlanningLineListProps {
 }
 
 function PlanningLineList({ lines, onRemoveLine, isEditable = false }: PlanningLineListProps) {
+  const sortedLines = [...lines].sort((a, b) => a.startDate.localeCompare(b.startDate));
+
   return (
     <div className="card mb-4">
       <div className="card-body">
@@ -21,14 +23,14 @@ function PlanningLineList({ lines, onRemoveLine, isEditable = false }: PlanningL
             </tr>
           </thead>
           <tbody>
-            {lines.length === 0 ? (
+            {sortedLines.length === 0 ? (
               <tr>
                 <td colSpan={isEditable ? 4 : 3} className="text-center text-muted py-4">
                   No hay periodos seleccionados.
                 </td>
               </tr>
             ) : (
-              lines.map((line) => (
+              sortedLines.map((line) => (
                 <tr key={line.id}>
                   <td>{line.startDate}</td>
                   <td>{line.endDate}</td>

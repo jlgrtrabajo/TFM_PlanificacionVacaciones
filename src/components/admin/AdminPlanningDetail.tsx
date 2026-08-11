@@ -1,4 +1,4 @@
-import type { VacationPlanning } from '../../models/VacationModels';
+﻿import type { VacationPlanning } from '../../models/VacationModels';
 import PlanningStatusBadge from '../planning/PlanningStatusBadge';
 import ConfirmButton from '../common/ConfirmButton';
 
@@ -23,6 +23,7 @@ function AdminPlanningDetail({ planning, onApprove, onReject, rejectReason, onRe
   }
 
   const isPending = planning.status === 'PENDING';
+  const sortedLines = [...planning.lines].sort((a, b) => a.startDate.localeCompare(b.startDate));
 
   return (
     <div className="card mb-4">
@@ -38,7 +39,6 @@ function AdminPlanningDetail({ planning, onApprove, onReject, rejectReason, onRe
             <span className="badge bg-secondary">ID {planning.id}</span>
           </div>
         </div>
-
         <div className="mb-3">
           <h3 className="h6">Periodos</h3>
           <div className="table-responsive">
@@ -51,7 +51,7 @@ function AdminPlanningDetail({ planning, onApprove, onReject, rejectReason, onRe
                 </tr>
               </thead>
               <tbody>
-                {planning.lines.map((line) => (
+                {sortedLines.map((line) => (
                   <tr key={line.id}>
                     <td>{line.startDate}</td>
                     <td>{line.endDate}</td>
@@ -62,14 +62,12 @@ function AdminPlanningDetail({ planning, onApprove, onReject, rejectReason, onRe
             </table>
           </div>
         </div>
-
         <div className="mb-3">
           <p className="mb-1">Total días: {planning.totalDays}</p>
           {planning.approverId && <p className="mb-1">Aprobador: {planning.approverId}</p>}
           {planning.approvalDate && <p className="mb-1">Fecha aprobación: {planning.approvalDate.slice(0, 10)}</p>}
           {planning.rejectionReason && <p className="mb-1">Motivo de rechazo: {planning.rejectionReason}</p>}
         </div>
-
         <div className="mb-3">
           <label htmlFor="rejectReason" className="form-label">
             Motivo de rechazo
@@ -83,7 +81,6 @@ function AdminPlanningDetail({ planning, onApprove, onReject, rejectReason, onRe
             disabled={!isPending}
           />
         </div>
-
         <div className="d-flex gap-2">
           <ConfirmButton
             onConfirm={onApprove}

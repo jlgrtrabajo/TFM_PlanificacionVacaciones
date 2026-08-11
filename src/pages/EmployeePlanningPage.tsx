@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import DefaultLayout from '../layouts/DefaultLayout';
@@ -32,10 +32,8 @@ function EmployeePlanningPage() {
       setDraftPlanning(null);
       return;
     }
-
     const userPlanningData = planningService.getPlanningHistoryByUserId(user.id);
     setPlannings(userPlanningData);
-
     const latestPlanning = userPlanningData[0] ?? null;
     if (!latestPlanning || latestPlanning.status === 'REJECTED') {
       setDraftPlanning({
@@ -64,15 +62,14 @@ function EmployeePlanningPage() {
       setNextLineId(1);
       return;
     }
-
-    setLines(activePlanning.lines);
+    const sortedLines = [...activePlanning.lines].sort((a, b) => a.startDate.localeCompare(b.startDate));
+    setLines(sortedLines);
     setNextLineId(activePlanning.lines.length + 1);
   }, [activePlanning]);
 
   const totalSelected = useMemo(() => getTotalWorkingDays(calendar, lines), [calendar, lines]);
   const remaining = REQUIRED_DAYS - totalSelected;
   const isEditable = activePlanning?.status === 'DRAFT';
-
   const profileName = user ? getProfiles().find((profile) => profile.id === user.profileId)?.description : 'Desconocido';
 
   const handleRemoveLine = (lineId: number) => {
@@ -83,7 +80,6 @@ function EmployeePlanningPage() {
   };
 
   const isRangeOverlap = (startA: Date, endA: Date, startB: Date, endB: Date) => startA <= endB && startB <= endA;
-
   const doesLineOverlap = (a: VacationPlanningLine, b: VacationPlanningLine) =>
     isRangeOverlap(parseDate(a.startDate), parseDate(a.endDate), parseDate(b.startDate), parseDate(b.endDate));
 
@@ -92,23 +88,22 @@ function EmployeePlanningPage() {
       setMessage('Primero crea una planificación para poder añadir periodos.');
       return;
     }
-
     if (!isEditable) {
       setMessage('No puedes añadir periodos a una planificación que ya está enviada o aprobada.');
       return;
     }
-
     if (lines.some((existing) => doesLineOverlap(existing, line))) {
       setMessage('No puedes añadir un periodo que se solape con un periodo ya seleccionado.');
       return;
     }
-
     if (totalSelected + line.workingDays > REQUIRED_DAYS) {
       setMessage('No puedes seleccionar más de 22 días laborables.');
       return;
     }
-
-    setLines((current) => [...current, { ...line, planningId: activePlanning.id }]);
+    setLines((current) => {
+      const updated = [...current, { ...line, planningId: activePlanning.id }];
+      return updated.sort((a, b) => a.startDate.localeCompare(b.startDate));
+    });
     setNextLineId((current) => current + 1);
     setMessage('');
   };
@@ -118,17 +113,14 @@ function EmployeePlanningPage() {
       setMessage('No hay planificación activa para enviar.');
       return;
     }
-
     if (activePlanning.status !== 'DRAFT') {
       setMessage('No puedes enviar esta planificación porque no está en estado DRAFT.');
       return;
     }
-
     if (remaining !== 0) {
       setMessage('Debes seleccionar exactamente 22 días laborables para enviar la planificación.');
       return;
     }
-
     const pendingPlan: VacationPlanning = {
       ...activePlanning,
       status: 'PENDING',
@@ -137,14 +129,12 @@ function EmployeePlanningPage() {
       createdAt: new Date().toISOString(),
       modifiedAt: new Date().toISOString(),
     };
-
     planningService.createNewPlanning(pendingPlan);
     setPlannings(planningService.getPlanningHistoryByUserId(user.id));
     setDraftPlanning(null);
     setLines([]);
     setNextLineId(1);
     setMessage('Planificación enviada correctamente. Estado: Pendiente. Notificaciones enviadas al usuario y su administrador.');
-
     addNotification({
       id: Date.now(),
       planningId: pendingPlan.id,
@@ -155,7 +145,6 @@ function EmployeePlanningPage() {
       sent: true,
       createdAt: new Date().toISOString(),
     });
-
     const employee = getUsers().find((item) => item.id === pendingPlan.userId);
     const approver = employee ? getApprovers().find((item) => item.departmentId === employee.departmentId) : undefined;
     if (approver) {
@@ -189,11 +178,11 @@ function EmployeePlanningPage() {
         <div className="col-12">
           <h1 className="h4">Portal del empleado</h1>
           <p>
-              Bienvenido, <span className="fw-bold">{user.name}</span>. Perfil: <span className="fw-bold">{profileName}</span>. Departamento: <span className="fw-bold">{departmentName}</span>
-            </p>
-            <p>
-              <span className="fw-bold">Planificación de vacaciones {DEMO_YEAR}</span>
-            </p>
+            Bienvenido, <span className="fw-bold">{user.name}</span>. Perfil: <span className="fw-bold">{profileName}</span>. Departamento: <span className="fw-bold">{departmentName}</span>
+          </p>
+          <p>
+            <span className="fw-bold">Planificación de vacaciones {DEMO_YEAR}</span>
+          </p>
         </div>
       </div>
       <div className="row">

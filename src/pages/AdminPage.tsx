@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+﻿import { useMemo, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import DefaultLayout from '../layouts/DefaultLayout';
@@ -11,6 +11,7 @@ import type { VacationPlanning } from '../models/VacationModels';
 function AdminPage() {
   const { user } = useAuth();
   const { addNotification } = useNotification();
+
   const [statusFilter, setStatusFilter] = useState<'ALL' | VacationPlanning['status']>('ALL');
   const [searchText, setSearchText] = useState('');
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -49,7 +50,7 @@ function AdminPage() {
     };
 
     planningService.updatePlanning(updatedPlan);
-    setPlans(planningService.getAllPlannings());
+    setPlans([...planningService.getAllPlannings()]);
     setMessage(`Planificación ID ${selectedPlan.id} aprobada correctamente.`);
 
     addNotification({
@@ -88,7 +89,7 @@ function AdminPage() {
     };
 
     planningService.updatePlanning(updatedPlan);
-    setPlans(planningService.getAllPlannings());
+    setPlans([...planningService.getAllPlannings()]);
     setRejectReason('');
     setMessage(`Planificación ID ${selectedPlan.id} rechazada correctamente.`);
 
