@@ -15,4 +15,4 @@ En Pantalla "Administración"
 Cuando se rechaza o se aprueba una planificación hay que recargar la caja de "Planificaciones del departamento"
 
 
-
+https://tfm-planificacion-vacaciones.vercel.app/login
