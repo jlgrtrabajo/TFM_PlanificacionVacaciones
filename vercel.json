@@ -2,8 +2,7 @@
   "rewrites": [
     {
       "source": "/(.*)",
-      "destination": "/index.html",
-       "_comment": "Información personal del usuario" 
+      "destination": "/index.html"       
     }
   ]
 }
