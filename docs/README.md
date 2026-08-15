@@ -1,14 +1,51 @@
 # Planificación de Vacaciones - Portal del Empleado
 
-Prototipo frontend para la planificación anual de vacaciones.
+Prototipo frontend para la planificación anual de vacaciones de una empresa.
 
-## Tecnología
+## Stack Tecnologico
 
 - React
 - TypeScript
 - Vite
 - Bootstrap 5
 - React Router
+
+## Información sobre su instalación y ejecución
+    Para instalarlo se descarga de Github el codigo fuente: https://github.com/jlgrtrabajo/TFM_PlanificacionVacaciones.git
+    Se necesita instalar node.js y npm. si se quiere instalar y ejecutar en localhost.
+
+    La app se puede probar en: https://tfm-planificacion-vacaciones.vercel.app/
+
+## Estructura del proyecto
+    TFM_PlanificacionVacaciones
+    d:dist
+    d:docs
+    d:node_modules
+    d:src
+    -.gitignore
+    -.index.html
+    -package-lock.json
+    -package.json
+    -tsconfig.json
+    -tsconfig.node.json
+    -vercel.json
+    -vite.config.ts
+
+
+## Funcioalidades principales
+
+    Existen 2 perfiles de acceso a la app: Empleado y Administrador:
+     Empleado - solicita su planificación de vacaciones
+    Administrador - Aprueba/Rechaza planificaciones de los empleados de su departamento.
+        Tiene pantalla de dashboard de gestión
+        Tiene pantalla de administración de la planificaciones de los empleados de su departamento y aprueba/rechaza cada planifiación de vacaciones.
+
+        En el power point y video se puede ver a detalle todas las funcionalidades.
+
+
+## Usuario y contraseña
+
+    Se ven en la pantalla de login
 
 ## Alcance
 
